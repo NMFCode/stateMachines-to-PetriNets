@@ -1,0 +1,17 @@
+grammar FiniteStateMachines ( finite-state-machines )
+root StateMachine
+
+StateMachine:
+  'statemachine' id=ID <nsp> ':' <nl>
+    <ind>('states:' <nl> <ind>states+=State+ <unind>)? <unind><nl>
+    <ind>('transitions:' <nl> <ind>transitions+=Transition+<unind>)? <unind><nl>;
+State:
+  (isFinal?='final')? (isInitial?='initial')?  'state' name=Identifier <nl>;
+
+Transition:
+  startState=[State] '--(' input=ID ')-->' endState=[State] <nl>;
+
+terminal ID:
+  /[a-zA-Z]\w*/;
+terminal Identifier:
+    /\w+/;

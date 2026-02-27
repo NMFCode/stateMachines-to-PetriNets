@@ -1,0 +1,13 @@
+statemachine Simulation:
+  states:
+    initial state Created
+    state Paused
+    state Started
+    final state Stopped
+
+  transitions:
+    Created --( initialize )--> Paused
+    Paused --( reset )--> Paused
+    Paused --( start )--> Started
+    Paused --( stop )--> Stopped
+    Started --( stop )--> Stopped

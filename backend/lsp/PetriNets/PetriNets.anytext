@@ -1,0 +1,22 @@
+grammar PetriNet ( petri-nets )
+root PetriNet
+
+PetriNet:
+  'petrinet' id=ID <nsp> ':' <nl>
+    <ind>('transitions:' <nl> <ind> transitions+=Transition+ <unind>)? <unind><nl>
+    <ind>('places:' <nl> <ind> places+=Place+ <unind>)? <unind><nl> <nl>;
+
+Place:
+  'place' name=ID ('tokens' tokenCount=INT)? <nl>;
+
+Transition:
+  'transition'<nsp> ':' <nl><ind>
+    ('input' input=ID <nl>)?
+    'from' '[' <nsp> (from+=[Place] <nsp> (',' from+=[Place] <nsp>)*)? ']' <nl>
+    'to' '[' <nsp> (to+=[Place] <nsp> (',' to+=[Place] <nsp>)*)? ']'<unind> <nl>;
+
+terminal ID:
+  /[a-zA-Z]\w*/;
+
+terminal INT:
+  /\d+/;

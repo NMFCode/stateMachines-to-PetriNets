@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<nmeta:Namespace xmi:version="2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Uri="anytext:petri-nets" Prefix="petri-nets" Name="PetriNet" xmlns:xmi="http://www.omg.org/XMI" xmlns:nmeta="http://nmf.codeplex.com/nmeta/">
+  <Types xsi:type="nmeta:Class" Identifier="#//PetriNet/id" Name="PetriNet">
+    <References IsContainment="true" ReferenceType="nmeta:Class #//Place" UpperBound="-1" Name="places" />
+    <References IsContainment="true" ReferenceType="nmeta:Class #//Transition" UpperBound="-1" Name="transitions" />
+    <Attributes LowerBound="1" Type="nmeta:PrimitiveType http://nmf.codeplex.com/nmeta/#//String" Name="id" />
+  </Types>
+  <Types xsi:type="nmeta:Class" Identifier="#//Place/name" Name="Place">
+    <Attributes Type="nmeta:PrimitiveType http://nmf.codeplex.com/nmeta/#//String" Name="tokenCount" />
+    <Attributes LowerBound="1" Type="nmeta:PrimitiveType http://nmf.codeplex.com/nmeta/#//String" Name="name" />
+  </Types>
+  <Types xsi:type="nmeta:Class" Name="Transition">
+    <References ReferenceType="nmeta:Class #//Place" UpperBound="-1" Name="to" />
+    <References ReferenceType="nmeta:Class #//Place" UpperBound="-1" Name="from" />
+    <Attributes Type="nmeta:PrimitiveType http://nmf.codeplex.com/nmeta/#//String" Name="input" />
+  </Types>
+</nmeta:Namespace>

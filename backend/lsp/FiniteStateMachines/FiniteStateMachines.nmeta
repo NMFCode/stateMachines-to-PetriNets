@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<nmeta:Namespace xmi:version="2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Uri="anytext:finite-state-machines" Prefix="finite-state-machines" Name="FiniteStateMachines" xmlns:xmi="http://www.omg.org/XMI" xmlns:nmeta="http://nmf.codeplex.com/nmeta/">
+  <Types xsi:type="nmeta:Class" Identifier="#//StateMachine/id" Name="StateMachine">
+    <References IsContainment="true" ReferenceType="nmeta:Class #//Transition" UpperBound="-1" Name="transitions" />
+    <References IsContainment="true" ReferenceType="nmeta:Class #//State" UpperBound="-1" Name="states" />
+    <Attributes LowerBound="1" Type="nmeta:PrimitiveType http://nmf.codeplex.com/nmeta/#//String" Name="id" />
+  </Types>
+  <Types xsi:type="nmeta:Class" Identifier="#//State/name" Name="State">
+    <Attributes LowerBound="1" Type="nmeta:PrimitiveType http://nmf.codeplex.com/nmeta/#//String" Name="name" />
+    <Attributes LowerBound="1" Type="nmeta:PrimitiveType http://nmf.codeplex.com/nmeta/#//Boolean" Name="isInitial" />
+    <Attributes LowerBound="1" Type="nmeta:PrimitiveType http://nmf.codeplex.com/nmeta/#//Boolean" Name="isFinal" />
+  </Types>
+  <Types xsi:type="nmeta:Class" Name="Transition">
+    <References ReferenceType="nmeta:Class #//State" Name="endState" />
+    <References ReferenceType="nmeta:Class #//State" Name="startState" />
+    <Attributes LowerBound="1" Type="nmeta:PrimitiveType http://nmf.codeplex.com/nmeta/#//String" Name="input" />
+  </Types>
+</nmeta:Namespace>

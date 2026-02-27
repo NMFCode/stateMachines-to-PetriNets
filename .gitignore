@@ -1,0 +1,12 @@
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+node_modules/
+out/
+bin/
+obj/
+srv/
+dist/
+.vs/
+BenchmarkDotNet.Artifacts/
