@@ -246,6 +246,59 @@ namespace FiniteStateMachinesToPetriNets.FiniteStateMachines
         }
         
         /// <summary>
+        /// Gets the relative URI fragment for the given child model element
+        /// </summary>
+        /// <returns>A fragment of the relative URI</returns>
+        /// <param name="element">The element that should be looked for</param>
+        protected override string GetRelativePathForNonIdentifiedChild(IModelElement element)
+        {
+            int transitionsIndex = ModelHelper.IndexOfReference(this.Transitions, element);
+            if ((transitionsIndex != -1))
+            {
+                return ModelHelper.CreatePath("transitions", transitionsIndex);
+            }
+            int statesIndex = ModelHelper.IndexOfReference(this.States, element);
+            if ((statesIndex != -1))
+            {
+                return ModelHelper.CreatePath("states", statesIndex);
+            }
+            return base.GetRelativePathForNonIdentifiedChild(element);
+        }
+        
+        /// <summary>
+        /// Resolves the given URI to a child model element
+        /// </summary>
+        /// <returns>The model element or null if it could not be found</returns>
+        /// <param name="reference">The requested reference name</param>
+        /// <param name="index">The index of this reference</param>
+        protected override IModelElement GetModelElementForReference(string reference, int index)
+        {
+            if ((reference == "TRANSITIONS"))
+            {
+                if ((index < this.Transitions.Count))
+                {
+                    return this.Transitions[index];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            if ((reference == "STATES"))
+            {
+                if ((index < this.States.Count))
+                {
+                    return this.States[index];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            return base.GetModelElementForReference(reference, index);
+        }
+        
+        /// <summary>
         /// Resolves the given attribute name
         /// </summary>
         /// <returns>The attribute value or null if it could not be found</returns>
@@ -348,6 +401,40 @@ namespace FiniteStateMachinesToPetriNets.FiniteStateMachines
                 return null;
             }
             return this.Id.ToString();
+        }
+        
+        /// <summary>
+        /// Creates the uri with the given fragment starting from the current model element
+        /// </summary>
+        protected override Uri CreateUriWithFragment(string fragment, bool absolute, IModelElement baseElement)
+        {
+            return this.CreateUriFromGlobalIdentifier(fragment, absolute);
+        }
+        
+        /// <summary>
+        /// Propagates through the composition hierarchy that an entire subtree has been added to a new model
+        /// </summary>
+        protected override void PropagateNewModel(Model newModel, Model oldModel, IModelElement subtreeRoot)
+        {
+            string id = this.ToIdentifierString();
+            if ((oldModel != null))
+            {
+                oldModel.UnregisterId(id);
+            }
+            if ((newModel != null))
+            {
+                newModel.RegisterId(id, this);
+            }
+            base.PropagateNewModel(newModel, oldModel, subtreeRoot);
+        }
+        
+        /// <summary>
+        /// Notifies clients that the identifier changed
+        /// </summary>
+        protected override void OnKeyChanged(ValueChangedEventArgs e)
+        {
+            UpdateRegisteredIdentifier(e);
+            base.OnKeyChanged(e);
         }
         
         /// <summary>
@@ -963,6 +1050,40 @@ namespace FiniteStateMachinesToPetriNets.FiniteStateMachines
                 return null;
             }
             return this.Name.ToString();
+        }
+        
+        /// <summary>
+        /// Creates the uri with the given fragment starting from the current model element
+        /// </summary>
+        protected override Uri CreateUriWithFragment(string fragment, bool absolute, IModelElement baseElement)
+        {
+            return this.CreateUriFromGlobalIdentifier(fragment, absolute);
+        }
+        
+        /// <summary>
+        /// Propagates through the composition hierarchy that an entire subtree has been added to a new model
+        /// </summary>
+        protected override void PropagateNewModel(Model newModel, Model oldModel, IModelElement subtreeRoot)
+        {
+            string id = this.ToIdentifierString();
+            if ((oldModel != null))
+            {
+                oldModel.UnregisterId(id);
+            }
+            if ((newModel != null))
+            {
+                newModel.RegisterId(id, this);
+            }
+            base.PropagateNewModel(newModel, oldModel, subtreeRoot);
+        }
+        
+        /// <summary>
+        /// Notifies clients that the identifier changed
+        /// </summary>
+        protected override void OnKeyChanged(ValueChangedEventArgs e)
+        {
+            UpdateRegisteredIdentifier(e);
+            base.OnKeyChanged(e);
         }
         
         /// <summary>

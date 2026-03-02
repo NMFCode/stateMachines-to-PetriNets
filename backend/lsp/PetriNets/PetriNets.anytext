@@ -1,4 +1,4 @@
-grammar PetriNet ( petri-nets )
+grammar PetriNets ( petri-nets )
 root PetriNet
 
 PetriNet:

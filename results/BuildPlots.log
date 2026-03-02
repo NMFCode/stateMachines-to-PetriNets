@@ -1,0 +1,37 @@
+Attache Paket: 'dplyr'
+Die folgenden Objekte sind maskiert von 'package:stats':
+    filter, lag
+Die folgenden Objekte sind maskiert von 'package:base':
+    intersect, setdiff, setequal, union
+Attache Paket: 'gdata'
+Die folgenden Objekte sind maskiert von 'package:dplyr':
+    combine, first, last, starts_with
+Das folgende Objekt ist maskiert 'package:stats':
+    nobs
+Das folgende Objekt ist maskiert 'package:utils':
+    object.size
+Das folgende Objekt ist maskiert 'package:base':
+    startsWith
+Attache Paket: 'tidyr'
+Das folgende Objekt ist maskiert 'package:gdata':
+    starts_with
+Attache Paket: 'gridExtra'
+Das folgende Objekt ist maskiert 'package:gdata':
+    combine
+Das folgende Objekt ist maskiert 'package:dplyr':
+    combine
+R.devices v2.17.3 (2025-12-18 06:11:04 UTC) successfully loaded. See ?R.devices for help.
+Error:
+! `group_by_()` was deprecated in dplyr 0.7.0 and is now defunct.
+Ôä╣ Please use `group_by()` instead.
+Ôä╣ See vignette('programming') for more help
+Backtrace:
+    Ôûå
+ 1. Ôö£ÔöÇ... %>% ...
+ 2. Ôö£ÔöÇdplyr::summarise(., se = std.error(Measurement_Value), Value = mean(Measurement_Value))
+ 3. ÔööÔöÇdplyr::group_by_(., .dots = c("Target_Method", "Job_Id"))
+ 4.   ÔööÔöÇdplyr:::lazy_defunct("group_by")
+ 5.     ÔööÔöÇlifecycle::deprecate_stop(...)
+ 6.       ÔööÔöÇlifecycle:::deprecate_stop0(msg)
+ 7.         ÔööÔöÇrlang::cnd_signal(...)
+Ausf├╝hrung angehalten

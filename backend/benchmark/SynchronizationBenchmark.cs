@@ -13,13 +13,13 @@ using System.Management;
 
 namespace Benchmark
 {
-    [SimpleJob(iterationCount: 20, warmupCount: 5, invocationCount: 1)]
+    [SimpleJob(iterationCount: 10, warmupCount: 3, invocationCount: 1)]
     [MarkdownExporter]
     [RPlotExporter]
     [CsvExporter]
     public class SynchronizationBenchmark
     {
-        [Params(100, 1000, 10_000)]
+        [Params(100, 1000, 10_000, 100_000)]
         public int Size { get; set; }
 
 
@@ -121,6 +121,12 @@ namespace Benchmark
             _synchronizationService.PrepareUpdate(_pnParser);
             _pnParser.Update(new TextEdit(pos, pos, [_stateMachine.States[stateIndex].Name]));
             _synchronizationService.CompleteUpdate(_pnParser);
+        }
+
+        [IterationCleanup]
+        public void Cleanup()
+        {
+            GC.Collect();
         }
 
         private ParsePosition GetTransitionPosition()

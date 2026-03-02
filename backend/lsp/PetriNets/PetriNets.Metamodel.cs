@@ -246,6 +246,59 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
         }
         
         /// <summary>
+        /// Gets the relative URI fragment for the given child model element
+        /// </summary>
+        /// <returns>A fragment of the relative URI</returns>
+        /// <param name="element">The element that should be looked for</param>
+        protected override string GetRelativePathForNonIdentifiedChild(IModelElement element)
+        {
+            int placesIndex = ModelHelper.IndexOfReference(this.Places, element);
+            if ((placesIndex != -1))
+            {
+                return ModelHelper.CreatePath("places", placesIndex);
+            }
+            int transitionsIndex = ModelHelper.IndexOfReference(this.Transitions, element);
+            if ((transitionsIndex != -1))
+            {
+                return ModelHelper.CreatePath("transitions", transitionsIndex);
+            }
+            return base.GetRelativePathForNonIdentifiedChild(element);
+        }
+        
+        /// <summary>
+        /// Resolves the given URI to a child model element
+        /// </summary>
+        /// <returns>The model element or null if it could not be found</returns>
+        /// <param name="reference">The requested reference name</param>
+        /// <param name="index">The index of this reference</param>
+        protected override IModelElement GetModelElementForReference(string reference, int index)
+        {
+            if ((reference == "PLACES"))
+            {
+                if ((index < this.Places.Count))
+                {
+                    return this.Places[index];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            if ((reference == "TRANSITIONS"))
+            {
+                if ((index < this.Transitions.Count))
+                {
+                    return this.Transitions[index];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            return base.GetModelElementForReference(reference, index);
+        }
+        
+        /// <summary>
         /// Resolves the given attribute name
         /// </summary>
         /// <returns>The attribute value or null if it could not be found</returns>
@@ -348,6 +401,40 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
                 return null;
             }
             return this.Id.ToString();
+        }
+        
+        /// <summary>
+        /// Creates the uri with the given fragment starting from the current model element
+        /// </summary>
+        protected override Uri CreateUriWithFragment(string fragment, bool absolute, IModelElement baseElement)
+        {
+            return this.CreateUriFromGlobalIdentifier(fragment, absolute);
+        }
+        
+        /// <summary>
+        /// Propagates through the composition hierarchy that an entire subtree has been added to a new model
+        /// </summary>
+        protected override void PropagateNewModel(Model newModel, Model oldModel, IModelElement subtreeRoot)
+        {
+            string id = this.ToIdentifierString();
+            if ((oldModel != null))
+            {
+                oldModel.UnregisterId(id);
+            }
+            if ((newModel != null))
+            {
+                newModel.RegisterId(id, this);
+            }
+            base.PropagateNewModel(newModel, oldModel, subtreeRoot);
+        }
+        
+        /// <summary>
+        /// Notifies clients that the identifier changed
+        /// </summary>
+        protected override void OnKeyChanged(ValueChangedEventArgs e)
+        {
+            UpdateRegisteredIdentifier(e);
+            base.OnKeyChanged(e);
         }
         
         /// <summary>
@@ -737,7 +824,36 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
         
         private static Lazy<ITypedElement> _nameAttribute = new Lazy<ITypedElement>(RetrieveNameAttribute);
         
+        private static Lazy<ITypedElement> _incomingReference = new Lazy<ITypedElement>(RetrieveIncomingReference);
+        
+        /// <summary>
+        /// The backing field for the Incoming property
+        /// </summary>
+        [DebuggerBrowsableAttribute(DebuggerBrowsableState.Never)]
+        private PlaceIncomingCollection _incoming;
+        
+        private static Lazy<ITypedElement> _outgoingReference = new Lazy<ITypedElement>(RetrieveOutgoingReference);
+        
+        /// <summary>
+        /// The backing field for the Outgoing property
+        /// </summary>
+        [DebuggerBrowsableAttribute(DebuggerBrowsableState.Never)]
+        private PlaceOutgoingCollection _outgoing;
+        
         private static IClass _classInstance;
+        
+        /// <summary>
+        /// Creates a new instance
+        /// </summary>
+        public Place()
+        {
+            this._incoming = new PlaceIncomingCollection(this);
+            this._incoming.CollectionChanging += this.IncomingCollectionChanging;
+            this._incoming.CollectionChanged += this.IncomingCollectionChanged;
+            this._outgoing = new PlaceOutgoingCollection(this);
+            this._outgoing.CollectionChanging += this.OutgoingCollectionChanging;
+            this._outgoing.CollectionChanged += this.OutgoingCollectionChanged;
+        }
         
         /// <summary>
         /// The tokenCount property
@@ -794,6 +910,53 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
         }
         
         /// <summary>
+        /// The incoming property
+        /// </summary>
+        [DesignerSerializationVisibilityAttribute(DesignerSerializationVisibility.Content)]
+        [DisplayNameAttribute("incoming")]
+        [CategoryAttribute("Place")]
+        [XmlElementNameAttribute("incoming")]
+        [XmlAttributeAttribute(true)]
+        [XmlOppositeAttribute("to")]
+        [ConstantAttribute()]
+        public ISetExpression<ITransition> Incoming
+        {
+            get
+            {
+                return this._incoming;
+            }
+        }
+        
+        /// <summary>
+        /// The outgoing property
+        /// </summary>
+        [DesignerSerializationVisibilityAttribute(DesignerSerializationVisibility.Content)]
+        [DisplayNameAttribute("outgoing")]
+        [CategoryAttribute("Place")]
+        [XmlElementNameAttribute("outgoing")]
+        [XmlAttributeAttribute(true)]
+        [XmlOppositeAttribute("from")]
+        [ConstantAttribute()]
+        public ISetExpression<ITransition> Outgoing
+        {
+            get
+            {
+                return this._outgoing;
+            }
+        }
+        
+        /// <summary>
+        /// Gets the referenced model elements of this model element
+        /// </summary>
+        public override IEnumerableExpression<IModelElement> ReferencedElements
+        {
+            get
+            {
+                return base.ReferencedElements.Concat(new PlaceReferencedElementsCollection(this));
+            }
+        }
+        
+        /// <summary>
         /// Gets the Class model for this type
         /// </summary>
         public new static IClass ClassInstance
@@ -829,6 +992,56 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
             return ((ITypedElement)(((ModelElement)(FiniteStateMachinesToPetriNets.PetriNets.Place.ClassInstance)).Resolve("name")));
         }
         
+        private static ITypedElement RetrieveIncomingReference()
+        {
+            return ((ITypedElement)(((ModelElement)(FiniteStateMachinesToPetriNets.PetriNets.Place.ClassInstance)).Resolve("incoming")));
+        }
+        
+        /// <summary>
+        /// Forwards CollectionChanging notifications for the Incoming property to the parent model element
+        /// </summary>
+        /// <param name="sender">The collection that raised the change</param>
+        /// <param name="e">The original event data</param>
+        private void IncomingCollectionChanging(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            this.OnCollectionChanging("Incoming", e, _incomingReference);
+        }
+        
+        /// <summary>
+        /// Forwards CollectionChanged notifications for the Incoming property to the parent model element
+        /// </summary>
+        /// <param name="sender">The collection that raised the change</param>
+        /// <param name="e">The original event data</param>
+        private void IncomingCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            this.OnCollectionChanged("Incoming", e, _incomingReference);
+        }
+        
+        private static ITypedElement RetrieveOutgoingReference()
+        {
+            return ((ITypedElement)(((ModelElement)(FiniteStateMachinesToPetriNets.PetriNets.Place.ClassInstance)).Resolve("outgoing")));
+        }
+        
+        /// <summary>
+        /// Forwards CollectionChanging notifications for the Outgoing property to the parent model element
+        /// </summary>
+        /// <param name="sender">The collection that raised the change</param>
+        /// <param name="e">The original event data</param>
+        private void OutgoingCollectionChanging(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            this.OnCollectionChanging("Outgoing", e, _outgoingReference);
+        }
+        
+        /// <summary>
+        /// Forwards CollectionChanged notifications for the Outgoing property to the parent model element
+        /// </summary>
+        /// <param name="sender">The collection that raised the change</param>
+        /// <param name="e">The original event data</param>
+        private void OutgoingCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            this.OnCollectionChanged("Outgoing", e, _outgoingReference);
+        }
+        
         /// <summary>
         /// Resolves the given attribute name
         /// </summary>
@@ -846,6 +1059,24 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
                 return this.Name;
             }
             return base.GetAttributeValue(attribute, index);
+        }
+        
+        /// <summary>
+        /// Gets the Model element collection for the given feature
+        /// </summary>
+        /// <returns>A non-generic list of elements</returns>
+        /// <param name="feature">The requested feature</param>
+        protected override System.Collections.IList GetCollectionForFeature(string feature)
+        {
+            if ((feature == "INCOMING"))
+            {
+                return this._incoming;
+            }
+            if ((feature == "OUTGOING"))
+            {
+                return this._outgoing;
+            }
+            return base.GetCollectionForFeature(feature);
         }
         
         /// <summary>
@@ -909,6 +1140,203 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
                 return null;
             }
             return this.Name.ToString();
+        }
+        
+        /// <summary>
+        /// Creates the uri with the given fragment starting from the current model element
+        /// </summary>
+        protected override Uri CreateUriWithFragment(string fragment, bool absolute, IModelElement baseElement)
+        {
+            return this.CreateUriFromGlobalIdentifier(fragment, absolute);
+        }
+        
+        /// <summary>
+        /// Propagates through the composition hierarchy that an entire subtree has been added to a new model
+        /// </summary>
+        protected override void PropagateNewModel(Model newModel, Model oldModel, IModelElement subtreeRoot)
+        {
+            string id = this.ToIdentifierString();
+            if ((oldModel != null))
+            {
+                oldModel.UnregisterId(id);
+            }
+            if ((newModel != null))
+            {
+                newModel.RegisterId(id, this);
+            }
+            base.PropagateNewModel(newModel, oldModel, subtreeRoot);
+        }
+        
+        /// <summary>
+        /// Notifies clients that the identifier changed
+        /// </summary>
+        protected override void OnKeyChanged(ValueChangedEventArgs e)
+        {
+            UpdateRegisteredIdentifier(e);
+            base.OnKeyChanged(e);
+        }
+        
+        /// <summary>
+        /// The collection class to to represent the children of the Place class
+        /// </summary>
+        public class PlaceReferencedElementsCollection : ReferenceCollection, ICollectionExpression<IModelElement>, ICollection<IModelElement>
+        {
+            
+            private Place _parent;
+            
+            /// <summary>
+            /// Creates a new instance
+            /// </summary>
+            public PlaceReferencedElementsCollection(Place parent)
+            {
+                this._parent = parent;
+            }
+            
+            /// <summary>
+            /// Gets the amount of elements contained in this collection
+            /// </summary>
+            public override int Count
+            {
+                get
+                {
+                    int count = 0;
+                    count = (count + this._parent.Incoming.Count);
+                    count = (count + this._parent.Outgoing.Count);
+                    return count;
+                }
+            }
+            
+            /// <summary>
+            /// Registers event hooks to keep the collection up to date
+            /// </summary>
+            protected override void AttachCore()
+            {
+                this._parent.Incoming.AsNotifiable().CollectionChanged += this.PropagateCollectionChanges;
+                this._parent.Outgoing.AsNotifiable().CollectionChanged += this.PropagateCollectionChanges;
+            }
+            
+            /// <summary>
+            /// Unregisters all event hooks registered by AttachCore
+            /// </summary>
+            protected override void DetachCore()
+            {
+                this._parent.Incoming.AsNotifiable().CollectionChanged -= this.PropagateCollectionChanges;
+                this._parent.Outgoing.AsNotifiable().CollectionChanged -= this.PropagateCollectionChanges;
+            }
+            
+            /// <summary>
+            /// Adds the given element to the collection
+            /// </summary>
+            /// <param name="item">The item to add</param>
+            public override void Add(IModelElement item)
+            {
+                ITransition incomingCasted = item.As<ITransition>();
+                if ((incomingCasted != null))
+                {
+                    this._parent.Incoming.Add(incomingCasted);
+                }
+                ITransition outgoingCasted = item.As<ITransition>();
+                if ((outgoingCasted != null))
+                {
+                    this._parent.Outgoing.Add(outgoingCasted);
+                }
+            }
+            
+            /// <summary>
+            /// Clears the collection and resets all references that implement it.
+            /// </summary>
+            public override void Clear()
+            {
+                this._parent.Incoming.Clear();
+                this._parent.Outgoing.Clear();
+            }
+            
+            /// <summary>
+            /// Gets a value indicating whether the given element is contained in the collection
+            /// </summary>
+            /// <returns>True, if it is contained, otherwise False</returns>
+            /// <param name="item">The item that should be looked out for</param>
+            public override bool Contains(IModelElement item)
+            {
+                if (this._parent.Incoming.Contains(item))
+                {
+                    return true;
+                }
+                if (this._parent.Outgoing.Contains(item))
+                {
+                    return true;
+                }
+                return false;
+            }
+            
+            /// <summary>
+            /// Copies the contents of the collection to the given array starting from the given array index
+            /// </summary>
+            /// <param name="array">The array in which the elements should be copied</param>
+            /// <param name="arrayIndex">The starting index</param>
+            public override void CopyTo(IModelElement[] array, int arrayIndex)
+            {
+                IEnumerator<IModelElement> incomingEnumerator = this._parent.Incoming.GetEnumerator();
+                try
+                {
+                    for (
+                    ; incomingEnumerator.MoveNext(); 
+                    )
+                    {
+                        array[arrayIndex] = incomingEnumerator.Current;
+                        arrayIndex = (arrayIndex + 1);
+                    }
+                }
+                finally
+                {
+                    incomingEnumerator.Dispose();
+                }
+                IEnumerator<IModelElement> outgoingEnumerator = this._parent.Outgoing.GetEnumerator();
+                try
+                {
+                    for (
+                    ; outgoingEnumerator.MoveNext(); 
+                    )
+                    {
+                        array[arrayIndex] = outgoingEnumerator.Current;
+                        arrayIndex = (arrayIndex + 1);
+                    }
+                }
+                finally
+                {
+                    outgoingEnumerator.Dispose();
+                }
+            }
+            
+            /// <summary>
+            /// Removes the given item from the collection
+            /// </summary>
+            /// <returns>True, if the item was removed, otherwise False</returns>
+            /// <param name="item">The item that should be removed</param>
+            public override bool Remove(IModelElement item)
+            {
+                ITransition transitionItem = item.As<ITransition>();
+                if (((transitionItem != null) 
+                            && this._parent.Incoming.Remove(transitionItem)))
+                {
+                    return true;
+                }
+                if (((transitionItem != null) 
+                            && this._parent.Outgoing.Remove(transitionItem)))
+                {
+                    return true;
+                }
+                return false;
+            }
+            
+            /// <summary>
+            /// Gets an enumerator that enumerates the collection
+            /// </summary>
+            /// <returns>A generic enumerator</returns>
+            public override IEnumerator<IModelElement> GetEnumerator()
+            {
+                return Enumerable.Empty<IModelElement>().Concat(this._parent.Incoming).Concat(this._parent.Outgoing).GetEnumerator();
+            }
         }
         
         /// <summary>
@@ -997,7 +1425,7 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
         /// The backing field for the To property
         /// </summary>
         [DebuggerBrowsableAttribute(DebuggerBrowsableState.Never)]
-        private ObservableAssociationList<IPlace> _to;
+        private TransitionToCollection _to;
         
         private static Lazy<ITypedElement> _fromReference = new Lazy<ITypedElement>(RetrieveFromReference);
         
@@ -1005,7 +1433,7 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
         /// The backing field for the From property
         /// </summary>
         [DebuggerBrowsableAttribute(DebuggerBrowsableState.Never)]
-        private ObservableAssociationList<IPlace> _from;
+        private TransitionFromCollection _from;
         
         private static IClass _classInstance;
         
@@ -1014,10 +1442,10 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
         /// </summary>
         public Transition()
         {
-            this._to = new ObservableAssociationList<IPlace>();
+            this._to = new TransitionToCollection(this);
             this._to.CollectionChanging += this.ToCollectionChanging;
             this._to.CollectionChanged += this.ToCollectionChanged;
-            this._from = new ObservableAssociationList<IPlace>();
+            this._from = new TransitionFromCollection(this);
             this._from.CollectionChanging += this.FromCollectionChanging;
             this._from.CollectionChanged += this.FromCollectionChanged;
         }
@@ -1056,8 +1484,9 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
         [CategoryAttribute("Transition")]
         [XmlElementNameAttribute("to")]
         [XmlAttributeAttribute(true)]
+        [XmlOppositeAttribute("incoming")]
         [ConstantAttribute()]
-        public ICollectionExpression<IPlace> To
+        public IListExpression<IPlace> To
         {
             get
             {
@@ -1073,8 +1502,9 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
         [CategoryAttribute("Transition")]
         [XmlElementNameAttribute("from")]
         [XmlAttributeAttribute(true)]
+        [XmlOppositeAttribute("outgoing")]
         [ConstantAttribute()]
-        public ICollectionExpression<IPlace> From
+        public IListExpression<IPlace> From
         {
             get
             {
@@ -1161,6 +1591,39 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
         private void FromCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             this.OnCollectionChanged("From", e, _fromReference);
+        }
+        
+        /// <summary>
+        /// Resolves the given URI to a child model element
+        /// </summary>
+        /// <returns>The model element or null if it could not be found</returns>
+        /// <param name="reference">The requested reference name</param>
+        /// <param name="index">The index of this reference</param>
+        protected override IModelElement GetModelElementForReference(string reference, int index)
+        {
+            if ((reference == "TO"))
+            {
+                if ((index < this.To.Count))
+                {
+                    return this.To[index];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            if ((reference == "FROM"))
+            {
+                if ((index < this.From.Count))
+                {
+                    return this.From[index];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            return base.GetModelElementForReference(reference, index);
         }
         
         /// <summary>
@@ -1433,6 +1896,86 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
     }
     
     /// <summary>
+    /// Denotes a class to implement the to reference
+    /// </summary>
+    public class TransitionToCollection : ObservableOppositeList<ITransition, IPlace>
+    {
+        
+        /// <summary>
+        /// Creates a new instance
+        /// </summary>
+        /// <param name="parent">the parent Transition</param>
+        public TransitionToCollection(ITransition parent) : 
+                base(parent)
+        {
+        }
+        
+        private void OnItemDeleted(object sender, EventArgs e)
+        {
+            this.Remove(((IPlace)(sender)));
+        }
+        
+        /// <summary>
+        /// Sets the opposite of the given item
+        /// </summary>
+        /// <param name="item">the item</param>
+        /// <param name="newParent">the new parent or null, if the item is removed from the collection</param>
+        protected override void SetOpposite(IPlace item, ITransition newParent)
+        {
+            if ((newParent != null))
+            {
+                item.Deleted += this.OnItemDeleted;
+                item.Incoming.Add(newParent);
+            }
+            else
+            {
+                item.Deleted -= this.OnItemDeleted;
+                item.Incoming.Remove(this.Parent);
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Denotes a class to implement the from reference
+    /// </summary>
+    public class TransitionFromCollection : ObservableOppositeList<ITransition, IPlace>
+    {
+        
+        /// <summary>
+        /// Creates a new instance
+        /// </summary>
+        /// <param name="parent">the parent Transition</param>
+        public TransitionFromCollection(ITransition parent) : 
+                base(parent)
+        {
+        }
+        
+        private void OnItemDeleted(object sender, EventArgs e)
+        {
+            this.Remove(((IPlace)(sender)));
+        }
+        
+        /// <summary>
+        /// Sets the opposite of the given item
+        /// </summary>
+        /// <param name="item">the item</param>
+        /// <param name="newParent">the new parent or null, if the item is removed from the collection</param>
+        protected override void SetOpposite(IPlace item, ITransition newParent)
+        {
+            if ((newParent != null))
+            {
+                item.Deleted += this.OnItemDeleted;
+                item.Outgoing.Add(newParent);
+            }
+            else
+            {
+                item.Deleted -= this.OnItemDeleted;
+                item.Outgoing.Remove(this.Parent);
+            }
+        }
+    }
+    
+    /// <summary>
     /// The public interface for Transition
     /// </summary>
     [DefaultImplementationTypeAttribute(typeof(Transition))]
@@ -1462,8 +2005,9 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
         [CategoryAttribute("Transition")]
         [XmlElementNameAttribute("to")]
         [XmlAttributeAttribute(true)]
+        [XmlOppositeAttribute("incoming")]
         [ConstantAttribute()]
-        ICollectionExpression<IPlace> To
+        IListExpression<IPlace> To
         {
             get;
         }
@@ -1476,10 +2020,91 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
         [CategoryAttribute("Transition")]
         [XmlElementNameAttribute("from")]
         [XmlAttributeAttribute(true)]
+        [XmlOppositeAttribute("outgoing")]
         [ConstantAttribute()]
-        ICollectionExpression<IPlace> From
+        IListExpression<IPlace> From
         {
             get;
+        }
+    }
+    
+    /// <summary>
+    /// Denotes a class to implement the incoming reference
+    /// </summary>
+    public class PlaceIncomingCollection : ObservableOppositeSet<IPlace, ITransition>
+    {
+        
+        /// <summary>
+        /// Creates a new instance
+        /// </summary>
+        /// <param name="parent">the parent Place</param>
+        public PlaceIncomingCollection(IPlace parent) : 
+                base(parent)
+        {
+        }
+        
+        private void OnItemDeleted(object sender, EventArgs e)
+        {
+            this.Remove(((ITransition)(sender)));
+        }
+        
+        /// <summary>
+        /// Sets the opposite of the given item
+        /// </summary>
+        /// <param name="item">the item</param>
+        /// <param name="newParent">the new parent or null, if the item is removed from the collection</param>
+        protected override void SetOpposite(ITransition item, IPlace newParent)
+        {
+            if ((newParent != null))
+            {
+                item.Deleted += this.OnItemDeleted;
+                item.To.Add(newParent);
+            }
+            else
+            {
+                item.Deleted -= this.OnItemDeleted;
+                item.To.Remove(this.Parent);
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Denotes a class to implement the outgoing reference
+    /// </summary>
+    public class PlaceOutgoingCollection : ObservableOppositeSet<IPlace, ITransition>
+    {
+        
+        /// <summary>
+        /// Creates a new instance
+        /// </summary>
+        /// <param name="parent">the parent Place</param>
+        public PlaceOutgoingCollection(IPlace parent) : 
+                base(parent)
+        {
+        }
+        
+        private void OnItemDeleted(object sender, EventArgs e)
+        {
+            this.Remove(((ITransition)(sender)));
+        }
+        
+        /// <summary>
+        /// Sets the opposite of the given item
+        /// </summary>
+        /// <param name="item">the item</param>
+        /// <param name="newParent">the new parent or null, if the item is removed from the collection</param>
+        protected override void SetOpposite(ITransition item, IPlace newParent)
+        {
+            if ((newParent != null))
+            {
+                item.Deleted += this.OnItemDeleted;
+                item.From.Add(newParent);
+            }
+            else
+            {
+                item.Deleted -= this.OnItemDeleted;
+                item.From.Remove(this.Parent);
+            }
         }
     }
     
@@ -1517,6 +2142,36 @@ namespace FiniteStateMachinesToPetriNets.PetriNets
         {
             get;
             set;
+        }
+        
+        /// <summary>
+        /// The incoming property
+        /// </summary>
+        [DesignerSerializationVisibilityAttribute(DesignerSerializationVisibility.Content)]
+        [DisplayNameAttribute("incoming")]
+        [CategoryAttribute("Place")]
+        [XmlElementNameAttribute("incoming")]
+        [XmlAttributeAttribute(true)]
+        [XmlOppositeAttribute("to")]
+        [ConstantAttribute()]
+        ISetExpression<ITransition> Incoming
+        {
+            get;
+        }
+        
+        /// <summary>
+        /// The outgoing property
+        /// </summary>
+        [DesignerSerializationVisibilityAttribute(DesignerSerializationVisibility.Content)]
+        [DisplayNameAttribute("outgoing")]
+        [CategoryAttribute("Place")]
+        [XmlElementNameAttribute("outgoing")]
+        [XmlAttributeAttribute(true)]
+        [XmlOppositeAttribute("from")]
+        [ConstantAttribute()]
+        ISetExpression<ITransition> Outgoing
+        {
+            get;
         }
     }
     

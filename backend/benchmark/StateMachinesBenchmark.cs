@@ -47,7 +47,7 @@ namespace Benchmark
         {
             var s = RandomState();
             s.Name += "Changed";
-            Update(s, "name");
+            Update(s, "name", true);
         }
 
         [Benchmark]
@@ -72,7 +72,7 @@ namespace Benchmark
             Update(s, "isFinal");
         }
 
-        private void Update(object changedElement, string feature)
+        private void Update(object changedElement, string feature, bool updateReferences = false)
         {
             switch (Mode)
             {
@@ -83,7 +83,7 @@ namespace Benchmark
                     _parser.Update(changedElement);
                     break;
                 case UpdateMode.UpdateWithFeature:
-                    _parser.Update(changedElement, feature);
+                    _parser.Update([new ModelUpdate(changedElement, [feature], updateReferences)]);
                     break;
             }
         }

@@ -45,7 +45,7 @@ namespace FiniteStateMachinesToPetriNets.Synchronization
                 private readonly IPetriNet _net;
 
                 public EndPlaceCollection(IPetriNet net)
-                    : base(net.Places.Where(p => net.Transitions.Any(t => t.From.Contains(p) && t.To.Count == 0)))
+                    : base(net.Places.Where(p => p.Outgoing.Any(t => t.To.Count == 0)))
                 {
                     _net = net;
                 }
@@ -83,7 +83,7 @@ namespace FiniteStateMachinesToPetriNets.Synchronization
                 private readonly IPetriNet _net;
 
                 public InitialPlaceCollection(IPetriNet net)
-                    : base(net.Places.Where(p => net.Transitions.Any(t => t.To.Contains(p) && t.From.Count == 0)))
+                    : base(net.Places.Where(p => p.Incoming.Any(t => t.From.Count == 0)))
                 {
                     _net = net;
                 }
