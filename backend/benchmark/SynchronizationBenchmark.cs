@@ -1,5 +1,4 @@
 ﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Engines;
 using FiniteStateMachinesToPetriNets.FiniteStateMachines;
 using FiniteStateMachinesToPetriNets.PetriNets;
 using FiniteStateMachinesToPetriNets.Synchronization;
@@ -8,8 +7,6 @@ using NMF.AnyText;
 using NMF.AnyText.Grammars;
 using NMF.AnyText.Workspace;
 using NMF.Synchronizations;
-using NMF.Transformations;
-using System.Management;
 
 namespace Benchmark
 {

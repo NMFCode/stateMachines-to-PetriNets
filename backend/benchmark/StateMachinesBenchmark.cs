@@ -2,9 +2,6 @@
 using FiniteStateMachinesToPetriNets.FiniteStateMachines;
 using NMF.AnyText;
 using NMF.AnyText.Grammars;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Benchmark
 {
