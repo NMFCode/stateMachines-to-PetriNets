@@ -10,7 +10,7 @@ The simplest way to run the benchmark is to start it as a Docker container as fo
 docker run georghinkel/synchronization_benchmark
 ```
 
-The benchmark will print its results as ASCII-art in the console. Alternatively, you can find the results under `/benchmark/BenchmarkDotNet.Artifacts/results`. Note that it will contain the R scripts necessary to produce the diagrams, but not the resulting diagrams because the Docker container does not have R installed.
+The benchmark takes about 60-80 minutes to complete and produces a number of results, including plain values, HTML/Markdown summaries and CSV files with the raw measurement results. It also will print its results as ASCII-art in the console. Alternatively, you can find the results under `/benchmark/BenchmarkDotNet.Artifacts/results`. Note that it will contain the R scripts necessary to produce the diagrams, but not the resulting diagrams because the Docker container does not have R installed.
 
 Benchmark.NET unfortunately uses older versions of _dplyr_, in particular the function `group_by_` defunct since version 0.7. In the `results` directory, we included a slight modification of the R scripts that work with more recent versions of dplyr. For the paper, we extracted the parameter sizes from the job names and used the sizes as X-axis.
 
@@ -34,7 +34,7 @@ Afterwards, you can execute the benchmark by starting
 dotnet backend/benchmark/bin/Release/net10.0/Benchmark.dll
 ```
 
-The benchmark takes about 60-80 minutes to complete and produces a number of results, including plain values, HTML summaries, CSV files with the raw measurement results and (if R is installed), plots.
+The benchmark takes about 60-80 minutes to complete and produces a number of results, including plain values, HTML/Markdown summaries, CSV files with the raw measurement results and (if R is installed), plots.
 
 ## Compile and Run the extension
 
