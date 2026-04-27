@@ -75,7 +75,7 @@ for (file in files) {
   }
 
   resultStats <- result %>%
-    group_by_(.dots = c("Target_Method", "Job_Id")) %>%
+    group_by(Job_Id, shape=Target_Method) %>%
     summarise(se = std.error(Measurement_Value), Value = mean(Measurement_Value))
 
   benchmarkBoxplot <- ggplot(result, aes(x=Target_Method, y=Measurement_Value, fill=Job_Id)) +
@@ -93,9 +93,7 @@ for (file in files) {
     #geom_errorbar(aes(ymin=Value-1.96*se, ymax=Value+1.96*se), width=.2, position=position_dodge(.9))
 
   printNice(benchmarkBoxplot)
-  printNice(benchmarkBarplot)
   ggsaveNice(gsub("-measurements.csv", "-boxplot.png", file), benchmarkBoxplot)
-  ggsaveNice(gsub("-measurements.csv", "-barplot.png", file), benchmarkBarplot)
 
   for (target in unique(result$Target_Method)) {
     df <- result %>% filter(Target_Method == target)
