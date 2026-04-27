@@ -85,9 +85,9 @@ namespace Benchmark
             var stateIndex = R.Next(_stateMachine.States.Count);
             var endLine = _fsmParser.Context.Input[stateIndex + 2].Length;
             var position = new ParsePosition(stateIndex + 2, endLine);
-            _synchronizationService.PrepareUpdate(_fsmParser);
+            _synchronizationService.PreparePartnerUpdate(_fsmParser);
             _fsmParser.Update(new TextEdit(position, position, ["Changed"]));
-            _synchronizationService.CompleteUpdate(_fsmParser);
+            _synchronizationService.CompletePartnerUpdate(_fsmParser);
         }
 
         [Benchmark]
@@ -95,9 +95,9 @@ namespace Benchmark
         {
             var transitionIndex = R.Next(_stateMachine.Transitions.Count - 1);
             var line = _stateMachine.States.Count + 5 + transitionIndex;
-            _synchronizationService.PrepareUpdate(_fsmParser);
+            _synchronizationService.PreparePartnerUpdate(_fsmParser);
             _fsmParser.Update(new TextEdit(new ParsePosition(line, 0), new ParsePosition(line + 1, 0), [""]));
-            _synchronizationService.CompleteUpdate(_fsmParser);
+            _synchronizationService.CompletePartnerUpdate(_fsmParser);
         }
 
         [Benchmark]
@@ -105,9 +105,9 @@ namespace Benchmark
         {
             var stateIndex = GetRandomNonInitialStateIndex();
             var position = new ParsePosition(stateIndex + 2, 4);
-            _synchronizationService.PrepareUpdate(_fsmParser);
+            _synchronizationService.PreparePartnerUpdate(_fsmParser);
             _fsmParser.Update(new TextEdit(position, position, ["initial "]));
-            _synchronizationService.CompleteUpdate(_fsmParser);
+            _synchronizationService.CompletePartnerUpdate(_fsmParser);
         }
 
         [Benchmark]
@@ -115,9 +115,9 @@ namespace Benchmark
         {
             var stateIndex = R.Next(_stateMachine.States.Count);
             ParsePosition pos = GetTransitionPosition();
-            _synchronizationService.PrepareUpdate(_pnParser);
+            _synchronizationService.PreparePartnerUpdate(_pnParser);
             _pnParser.Update(new TextEdit(pos, pos, [_stateMachine.States[stateIndex].Name]));
-            _synchronizationService.CompleteUpdate(_pnParser);
+            _synchronizationService.CompletePartnerUpdate(_pnParser);
         }
 
         [IterationCleanup]
